@@ -1,3 +1,11 @@
+credentials.json
+token.json
+input/**
+input/*.*
+output/*.md
+__pycache__
+src/__pycache__
+.idea/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -129,7 +137,11 @@ dmypy.json
 .pyre/
 
 dump.sql
+data.dump
 
 # Personal workspace files
 .idea/*
 .vscode/*
+.DS_Store
+__pycache__
+.env
