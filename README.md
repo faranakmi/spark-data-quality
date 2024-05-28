@@ -6,7 +6,7 @@ Your assignment is to convert two of the SQL queries you wrote in Weeks 1-2 to S
 
 ### Submission Guidelines
 
-1. Write your PySpark jobs in `job_1.py` and `job_2.py` in the `src/jobs` folder. **Please do not change the file names!**
+1. Write your PySpark jobs in `job_1.py` and `job_2.py` in the `src/jobs` folder and write your tests in `test_1.py` and `test_2.py` in the `src/tests` folder. **Please do not change the file paths or file names!**
 
 2. **Lint your code for readability.** This makes your work easier to follow and understand for the reviewer.
 
@@ -24,20 +24,23 @@ Your assignment is to convert two of the SQL queries you wrote in Weeks 1-2 to S
     > :warning: Committing changes to the PR after the deadline can cause confusion about the readiness of your submission and delay the review process, so we ask that you avoid making additional changes to the code unless absolutely necessary or the reviewer requests changes.
     > 
 
-6. If applicable, check the Github workflow for preliminary test results and LLM-generated feedback for revision. You should update your PR accordingly before the submission deadline.
+6. Check the Github workflow for LLM-generated feedback for revision. You can update your PR as many times as you'd like before the submission deadline.
 
 Grades are determined on a pass or fail basis. This is only used for certification purposes.
 
 ## Getting started
 
-1. Create a virtual environment and activate it:
+1. Create a virtual environment and activate it. For example:
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 ```
 
-2. Install the dependencies into that virtual environment:
+2. Install the dependencies into that virtual environment. For example:
 
 ```bash
 python -m pip install -r requirements.txt
 ```
+
+Please adjust as needed based on your computer's operating system.
