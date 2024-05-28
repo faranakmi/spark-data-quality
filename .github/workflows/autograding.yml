@@ -37,8 +37,8 @@ jobs:
         uses: tj-actions/changed-files@v44
         with:
           files: |
-            "src/jobs/job_*.py"
-            "src/tests/test_*.py"
+            src/jobs/job_*.py
+            src/tests/test_*.py
           files_ignore: |
             .github/**/*
             _app/**
