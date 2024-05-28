@@ -47,12 +47,13 @@ def get_prompts(s3_solutions_dir: str, local_solutions_dir: str) -> str:
 
 def get_submissions(submission_dir: str) -> dict:
   submissions = {}
-  jobs_dir = os.path.join(submission_dir, 'jobs')
-  tests_dir = os.path.join(submission_dir, 'tests')
-  jobs_files = [f for f in os.listdir(jobs_dir)]
-  tests_files = [f for f in os.listdir(tests_dir)]
-  submission_files = jobs_files + tests_files
-  for file_path in submission_files:
+  submission_files = os.path.join(submission_dir)
+  logger.info(f"Submission files: {submission_files}")
+  for sub_file in submission_files:
+    file_path = os.path.join(submission_dir, sub_file)
+    if not file_path:
+      logger.info(f"File not found: {file_path}")
+      continue
     with open(file_path, "r") as file:
       file_content = file.read()
     if re.search(r'\S', file_content):
