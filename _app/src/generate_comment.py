@@ -52,12 +52,11 @@ def get_submissions(submission_dir: str) -> dict:
   jobs_files = [f for f in os.listdir(jobs_dir)]
   tests_files = [f for f in os.listdir(tests_dir)]
   submission_files = jobs_files + tests_files
-  for filename in submission_files:
-    file_path = os.path.join(submission_dir, filename)
+  for file_path in submission_files:
     with open(file_path, "r") as file:
       file_content = file.read()
     if re.search(r'\S', file_content):
-      submissions[filename] = file_content
+      submissions[file_path] = file_content
   if not submissions:
     logging.warning('no submissions found')
     return None
