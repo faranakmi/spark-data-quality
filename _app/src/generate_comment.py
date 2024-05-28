@@ -109,7 +109,7 @@ def get_feedback(system_prompt: str, user_prompt: str) -> str:
             temperature=0,
         )
         comment = response.choices[0].message.content
-    text = f"This is a LLM-generated comment for `{filename}`: \n{comment if comment else 'Tests passed. No feedback generated for testing purposes.'}"
+    text = f"This is a LLM-generated comment: \n{comment if comment else 'Tests passed. No feedback generated for testing purposes.'}"
     return text
 
 
@@ -149,7 +149,7 @@ def main():
                                              local_solutions_dir)
 
     for file_name, submission in submissions.items():
-        file_path = os.path.join(submission_dir, filename)
+        file_path = os.path.join(submission_dir, file_name)
         user_prompt += code_snippet.format(file_name=file_name,
                                            file_content=submission)
 
