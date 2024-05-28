@@ -22,7 +22,6 @@ jobs:
     outputs:
       all_changed_submission_files: ${{ steps.filtered-changed-files.outputs.all_changed_submission_files }}
       any_submission_changes: ${{ steps.filtered-changed-files.outputs.any_submission_changes }}
-      changed_submission_files_push: ${{ steps.filtered-changed-files.outputs.changed_submission_files_push }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -58,7 +57,7 @@ jobs:
           before_sha="${{ github.event.pull_request.base.sha }}" 
           after_sha="${{ github.event.after }}"
           if ! git rev-parse --verify "$before_sha" >/dev/null || ! git rev-parse --verify "$after_sha" >/dev/null || [ -z "${{ github.event.before }}" ] || [ -z "${{ github.event.after }}" ]; then
-            echo "One or both of the commit SHAs don't exist. Skipping git diff."
+            echo "One or both of the SHAs don't exist. Skipping git diff."
             filter_changed_files_push=()
           else
             changed_files_push="$(git diff --name-only $before_sha $after_sha)"
@@ -70,20 +69,14 @@ jobs:
               fi
             done
           fi
-          
-          changed_submission_files_push=$(echo "${filter_changed_files_push[@]}" | xargs)
-          echo "Filtered list of files changed in push: '$changed_submission_files_push'"
-          echo "changed_submission_files_push=${changed_submission_files_push// /,}" >> $GITHUB_OUTPUT
-          
+
       - name: Run step only if file(s) changed in PR
         if: steps.filtered-changed-files.outputs.any_submission_changes == 'true'
         env:
           ALL_CHANGED_FILES: ${{ steps.filtered-changed-files.outputs.all_changed_submission_files }}
-          PUSHED_CHANGED_FILES: ${{ steps.filtered-changed-files.outputs.changed_submission_files_push }}
         run: |
           echo "One or more files in the `src/` folder has changed."
           echo "Files changed in PR: '${ALL_CHANGED_FILES// /,}'"
-          echo "Files changed in push: '${PUSHED_CHANGED_FILES// /,}'"
 
   configure_environment:
     name: 'Configure environment'
@@ -111,7 +104,6 @@ jobs:
     if: needs.check_files.outputs.any_submission_changes == 'true'
     env:
       SUBMISSION_DIR: 'src'
-      CHANGED_FILES: ${{ needs.check_files.outputs.changed_submission_files_push }}
       ASSIGNMENT: ${{ needs.configure_environment.outputs.assignment }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       GITHUB_ORG: ${{ github.event.repository.owner.login }}

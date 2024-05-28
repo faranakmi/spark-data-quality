@@ -62,15 +62,3 @@ def get_submission_dir():
   if not os.path.exists(os.path.join(os.getcwd(), SUBMISSION_DIR)):
     raise ValueError(f"`{SUBMISSION_DIR}/` not found. Please update the SUBMISSION_DIR environment variable with a valid directory.")
   return SUBMISSION_DIR
-
-def get_changed_files():
-  CHANGED_FILES = os.environ.get("CHANGED_FILES")
-  if CHANGED_FILES is None:
-    raise ValueError("You need to specify CHANGED_FILES environment variable!")
-  if not CHANGED_FILES:
-    return []
-  changed_files_list = CHANGED_FILES.split(',')
-  for file in changed_files_list:
-    if not os.path.exists(file):
-      raise ValueError(f"`{file}` not found. Please make sure all files exist.")
-  return changed_files_list

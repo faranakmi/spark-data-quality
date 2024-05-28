@@ -2,7 +2,3 @@ openai
 python-dotenv
 requests
 boto3
-chispa
-pytest
-pyspark
-pyspark[sql]

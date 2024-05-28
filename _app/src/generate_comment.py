@@ -1,7 +1,7 @@
 import os
 import requests
 import boto3
-from util import get_logger, get_api_key, check_aws_creds, get_git_creds, get_assignment, get_submission_dir, get_changed_files
+from util import get_logger, get_api_key, check_aws_creds, get_git_creds, get_assignment, get_submission_dir #, get_changed_files
 from openai import OpenAI
 
 logger = get_logger()
@@ -96,9 +96,10 @@ def post_github_comment(git_token, repo, pr_number, comment, filename):
   logger.info(f"✅ Added review comment for {filename} at https://github.com/{repo}/pull/{pr_number}")
 
 
-def main(testing: bool, files_to_process: list):    
-  if not submissions or not files_to_process:
-    logger.warning('No file changes were detected in the current push so no comments were generated. Please modify one or more of the files at `src/jobs/` or `src/tests/` to receive LLM-generated feedback.')
+def main():
+  submissions = get_submissions(submission_dir)
+  if not submissions:
+    logger.warning(f'No comments were generated because no files were found in the `{submission_dir}` directory. Please modify one or more of the files at `src/jobs/` or `src/tests/` to receive LLM-generated feedback.')
     return None
 
   s3_solutions_dir = f"academy/2/homework-keys/{assignment}"
@@ -106,7 +107,6 @@ def main(testing: bool, files_to_process: list):
   os.makedirs(local_solutions_dir, exist_ok=True)
   system_prompt, user_prompt = get_prompts(s3_solutions_dir, local_solutions_dir)
   
-  submissions = get_submissions(submission_dir)
   for filename, submission in submissions.items():
     file_path = os.path.join(submission_dir, filename)
     user_prompt += code_snippet.format(file_name=file_name, file_content=submission)
@@ -118,6 +118,5 @@ def main(testing: bool, files_to_process: list):
   return comment
 
 if __name__ == "__main__":
-  files_to_process = get_changed_files()
-  comment = main(testing, files_to_process)
+  comment = main()
   print(comment)
