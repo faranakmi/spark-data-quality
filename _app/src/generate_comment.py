@@ -91,8 +91,7 @@ def get_submissions(submission_dir: str) -> dict:
     return sorted_submissions
 
 
-def get_feedback(filename: str, system_prompt: str, user_prompt: str,
-                 testing: bool) -> str:
+def get_feedback(system_prompt: str, user_prompt: str) -> str:
     comment = ''
     if not testing:
         response = client.chat.completions.create(
@@ -114,7 +113,7 @@ def get_feedback(filename: str, system_prompt: str, user_prompt: str,
     return text
 
 
-def post_github_comment(git_token, repo, pr_number, comment, filename):
+def post_github_comment(git_token, repo, pr_number, comment):
     url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
     headers = {
         "Accept": "application/vnd.github+json",
@@ -131,7 +130,7 @@ def post_github_comment(git_token, repo, pr_number, comment, filename):
             f"Failed to create comment. Status code: {response.status_code} \n{response.text}"
         )
     logger.info(
-        f"✅ Added review comment for {filename} at https://github.com/{repo}/pull/{pr_number}"
+        f"✅ Added review comment at https://github.com/{repo}/pull/{pr_number}"
     )
 
 
@@ -149,14 +148,14 @@ def main():
     system_prompt, user_prompt = get_prompts(s3_solutions_dir,
                                              local_solutions_dir)
 
-    for filename, submission in submissions.items():
+    for file_name, submission in submissions.items():
         file_path = os.path.join(submission_dir, filename)
         user_prompt += code_snippet.format(file_name=file_name,
                                            file_content=submission)
 
-    comment = get_feedback(filename, system_prompt, user_prompt, testing)
+    comment = get_feedback(system_prompt, user_prompt)
     if git_token and repo and pr_number:
-        post_github_comment(git_token, repo, pr_number, comment, filename)
+        post_github_comment(git_token, repo, pr_number, comment)
 
     return comment
 
