@@ -27,14 +27,22 @@ def download_from_s3(s3_bucket: str, s3_path: str, local_path: str):
     raise Exception(f"Failed to download from S3: {e}")
 
 
-def get_system_prompt(s3_solutions_dir: str, local_solutions_dir: str) -> str:
+def get_prompts(s3_solutions_dir: str, local_solutions_dir: str) -> str:
   s3_path = f"{s3_solutions_dir}/system_prompt.md"
-  local_path = os.path.join(local_solutions_dir, 'system_prompt.md')
-  download_from_s3(s3_bucket, s3_path, local_path)
-  if not os.path.exists(local_path):
-    raise ValueError(f"Path does not exist: {local_path}")
-  system_prompt = open(local_path, "r").read()
-  return system_prompt
+  local_system_prompt_path = os.path.join(local_solutions_dir, 'system_prompt.md')
+  download_from_s3(s3_bucket, s3_path, local_system_prompt_path)
+  if not os.path.exists(local_system_prompt_path):
+    raise ValueError(f"Path does not exist: {local_system_prompt_path}")
+  
+  local_user_prompt_path = os.path.join(local_solutions_dir, 'user_prompt.md')
+  download_from_s3(s3_bucket, s3_path, local_user_prompt_path)
+  if not os.path.exists(local_user_prompt_path):
+    raise ValueError(f"Path does not exist: {local_user_prompt_path}")
+
+  system_prompt = open(local_system_prompt_path, "r").read()
+  user_prompt = open(local_user_prompt_path, "r").read()
+  
+  return system_prompt, user_prompt
 
 
 def get_submissions(submission_dir: str) -> dict:
@@ -96,9 +104,8 @@ def main(testing: bool, files_to_process: list):
   s3_solutions_dir = f"academy/2/homework-keys/{assignment}"
   local_solutions_dir = os.path.join(os.getcwd(), 'solutions', assignment)
   os.makedirs(local_solutions_dir, exist_ok=True)
-  system_prompt = get_system_prompt(s3_solutions_dir, local_solutions_dir)
+  system_prompt, user_prompt = get_prompts(s3_solutions_dir, local_solutions_dir)
   
-  user_prompt = ''
   submissions = get_submissions(submission_dir)
   for filename, submission in submissions.items():
     file_path = os.path.join(submission_dir, filename)
