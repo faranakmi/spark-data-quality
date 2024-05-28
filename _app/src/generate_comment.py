@@ -93,23 +93,22 @@ def get_submissions(submission_dir: str) -> dict:
 
 def get_feedback(system_prompt: str, user_prompt: str) -> str:
     comment = ''
-    if not testing:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {
-                    "role": "system",
-                    "content": system_prompt
-                },
-                {
-                    "role": "user",
-                    "content": user_prompt
-                },
-            ],
-            temperature=0,
-        )
-        comment = response.choices[0].message.content
-    text = f"This is a LLM-generated comment: \n{comment if comment else 'Tests passed. No feedback generated for testing purposes.'}"
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {
+                "role": "system",
+                "content": system_prompt
+            },
+            {
+                "role": "user",
+                "content": user_prompt
+            },
+        ],
+        temperature=0,
+    )
+    comment = response.choices[0].message.content
+    text = f"This is a LLM-generated comment: \n{comment if comment else 'No feedback generated.'}"
     return text
 
 
