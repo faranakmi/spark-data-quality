@@ -1,4 +1,5 @@
 import os
+import logging
 import requests
 import boto3
 from util import get_logger, get_api_key, check_aws_creds, get_git_creds, get_assignment, get_submission_dir #, get_changed_files
@@ -46,23 +47,32 @@ def get_prompts(s3_solutions_dir: str, local_solutions_dir: str) -> str:
 
 
 def get_submissions(submission_dir: str) -> dict:
-  submissions = {}
-  submission_files = os.path.join(submission_dir)
-  logger.info(f"Submission files: {submission_files}")
-  for sub_file in submission_files:
-    file_path = os.path.join(submission_dir, sub_file)
-    if not file_path:
-      logger.info(f"File not found: {file_path}")
-      continue
-    with open(file_path, "r") as file:
-      file_content = file.read()
-    if re.search(r'\S', file_content):
-      submissions[file_path] = file_content
-  if not submissions:
-    logging.warning('no submissions found')
-    return None
-  sorted_submissions = dict(sorted(submissions.items()))
-  return sorted_submissions
+    submissions = {}
+    try:
+        submission_files = os.listdir(submission_dir)
+    except FileNotFoundError:
+        logger.error(f"Submission directory not found: {submission_dir}")
+        return None
+
+    logger.info(f"Submission files: {submission_files}")
+    for sub_file in submission_files:
+        file_path = os.path.join(submission_dir, sub_file)
+        if os.path.isfile(file_path) and (re.match(r'src/jobs/job_.*\.py', sub_file) or re.match(r'src/tests/test_.*\.py', sub_file)):
+            try:
+                with open(file_path, "r") as file:
+                    file_content = file.read()
+                if re.search(r'\S', file_content):
+                    submissions[file_path] = file_content
+            except FileNotFoundError:
+                logger.info(f"File not found: {file_path}")
+                continue
+
+    if not submissions:
+        logger.warning('No submissions found')
+        return None
+    
+    sorted_submissions = dict(sorted(submissions.items()))
+    return sorted_submissions
 
 
 def get_feedback(filename: str, system_prompt: str, user_prompt: str, testing: bool) -> str:
