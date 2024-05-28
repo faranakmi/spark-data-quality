@@ -17,7 +17,7 @@ COPY _app/requirements.txt .
 RUN pip install -r requirements.txt 
 
 # Copy necessary files
-COPY ./submission/ ./submission/
+COPY ./src/ ./src/
 COPY _app/ ./
 
 RUN chmod +x src/entrypoint.sh
