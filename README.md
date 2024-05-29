@@ -6,9 +6,9 @@ Your assignment is to convert **two** of the SQL queries you wrote in Weeks 1-2 
 
 ### Submission Guidelines
 
-1. Write your PySpark jobs in `src/jobs/convert_query_1_job.py` and `src/jobs/convert_query_2_job.py` in the `src/jobs` folder. 
+1. Write your PySpark jobs in `src/jobs/job_1.py` and `src/jobs/job_2.py` in the `src/jobs` folder. 
 
-2. Write your tests in `src/unit_tests/test_jobs.py` in the `src/unit_tests` folder. 
+2. Write your tests in `src/unit_tests/test_spark_jobs.py` in the `src/unit_tests` folder. 
 
     >
     > **Please do not change the file paths or file names!**
