@@ -3,9 +3,6 @@ name: Auto Grading
 on:
   pull_request_target:
     types: [opened, synchronize]
-    branches:
-      - main
-      - "cicd/**"
     paths:
       - "src/jobs/*.py"
       - "src/unit_tests/*.py"
