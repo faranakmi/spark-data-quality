@@ -1,16 +1,22 @@
 # Spark Data Quality
 
-Your assignment is to convert two of the SQL queries you wrote in Weeks 1-2 to SparkSQL and write unit integration tests on those queries.
+Your assignment is to convert **two** of the SQL queries you wrote in Weeks 1-2 to SparkSQL *and* write unit integration tests on those queries.
 - Create new PySpark jobs in `src/jobs` for these queries
-- Create tests in `src/tests` folder with fake input and expected output data
+- Create tests in `src/unit_tests` folder with fake input and expected output data
 
 ### Submission Guidelines
 
-1. Write your PySpark jobs in `job_1.py` and `job_2.py` in the `src/jobs` folder and write your tests in `test_1.py` and `test_2.py` in the `src/tests` folder. **Please do not change the file paths or file names!**
+1. Write your PySpark jobs in `src/jobs/convert_query_1_job.py` and `src/jobs/convert_query_2_job.py` in the `src/jobs` folder. 
 
-2. **Lint your code for readability.** This makes your work easier to follow and understand for the reviewer.
+2. Write your tests in `src/unit_tests/test_jobs.py` in the `src/unit_tests` folder. 
 
-3. **Add comments to your code.** This helps the reviewer understand your thought process.
+    >
+    > **Please do not change the file paths or file names!**
+    >
+
+2. **Lint your code for readability.** This makes it easier for ChatGPT to review your work and for the TAs.
+
+3. **Add comments to your code.** This helps ChatGPT provide a more accurate response and helps your reviewer understand your thought process.
 
 4. Once you've completed the assignment, please review your code for errors, ensure it's well-commented, and confirm that no further (obvious) changes are needed before proceeding to the next step.
 

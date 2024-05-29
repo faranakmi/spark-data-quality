@@ -3,9 +3,10 @@ from pyspark.sql import SparkSession
 from pyspark.sql.dataframe import DataFrame
 
 def query_1(output_table_name: str) -> str:
-    return f"""
+    query = f"""
     <YOUR QUERY HERE>
     """
+    return query
 
 def job_1(spark_session: SparkSession, output_table_name: str) -> Optional[DataFrame]:
   output_df = spark_session.table(output_table_name)
