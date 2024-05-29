@@ -180,9 +180,8 @@ def main():
     if git_token and repo and pr_number:
         post_github_comment(git_token, repo, pr_number, final_comment)
 
-    return final_comment
+    # return final_comment
 
 
 if __name__ == "__main__":
-    comment = main()
-    print(comment)
+    main()
