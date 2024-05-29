@@ -8,72 +8,36 @@ from openai import OpenAI
 
 logger = get_logger()
 client = OpenAI(api_key=get_api_key())
-assignment = get_assignment()
+
 submission_dir = get_submission_dir()
 git_token, repo, pr_number = get_git_creds()
 s3_bucket = check_aws_creds()
-
-code_snippet = """
-`{file_name}`:
-
-```python
-{file_content}
-```
-"""
-
-
-def download_from_s3(s3_bucket: str, s3_path: str, local_path: str):
-    s3 = boto3.client('s3')
-    try:
-        s3.download_file(s3_bucket, s3_path, local_path)
-    except Exception as e:
-        raise Exception(f"Failed to download from S3: {e}")
-
-
-def get_prompts(s3_solutions_dir: str, local_solutions_dir: str) -> str:
-    s3_path = f"{s3_solutions_dir}/system_prompt.md"
-    local_system_prompt_path = os.path.join(local_solutions_dir,
-                                            'system_prompt.md')
-    download_from_s3(s3_bucket, s3_path, local_system_prompt_path)
-    if not os.path.exists(local_system_prompt_path):
-        raise ValueError(f"Path does not exist: {local_system_prompt_path}")
-
-    local_user_prompt_path = os.path.join(local_solutions_dir,
-                                          'user_prompt.md')
-    download_from_s3(s3_bucket, s3_path, local_user_prompt_path)
-    if not os.path.exists(local_user_prompt_path):
-        raise ValueError(f"Path does not exist: {local_user_prompt_path}")
-
-    system_prompt = open(local_system_prompt_path, "r").read()
-    user_prompt = open(local_user_prompt_path, "r").read()
-
-    return system_prompt, user_prompt
 
 
 def get_submissions(submission_dir: str) -> dict:
     submissions = {}
     try:
         jobs_dir = os.path.join(submission_dir, 'jobs')
-        tests_dir = os.path.join(submission_dir, 'tests')
+        tests_dir = os.path.join(submission_dir, 'unit_tests')
         jobs_files = [
             os.path.join('jobs', f) for f in os.listdir(jobs_dir)
             if os.path.isfile(os.path.join(jobs_dir, f))
         ]
         tests_files = [
-            os.path.join('tests', f) for f in os.listdir(tests_dir)
+            os.path.join('unit_tests', f) for f in os.listdir(tests_dir)
             if os.path.isfile(os.path.join(tests_dir, f))
         ]
-        submission_files = jobs_files + tests_files
+        files_found = jobs_files + tests_files
     except FileNotFoundError:
-        logger.error(f"Submission directory not found: {submission_dir}")
+        logger.error(f"Directory not found: {submission_dir}")
         return None
 
-    logger.info(f"Submission files: {submission_files}")
-    for sub_file in submission_files:
+    logger.info(f"Files: {files_found}")
+    for sub_file in files_found:
         file_path = os.path.join(submission_dir, sub_file)
         if os.path.isfile(file_path) and (
-                re.match(r'jobs/job_.*\.py', sub_file)
-                or re.match(r'tests/test_.*\.py', sub_file)):
+                re.match(r'jobs/.*\.py', sub_file)
+                or re.match(r'unit_tests/.*\.py', sub_file)):
             try:
                 with open(file_path, "r") as file:
                     file_content = file.read()
@@ -91,25 +55,92 @@ def get_submissions(submission_dir: str) -> dict:
     return sorted_submissions
 
 
-def get_feedback(system_prompt: str, user_prompt: str) -> str:
-    comment = ''
+def download_from_s3(s3_bucket: str, s3_path: str, local_path: str):
+    s3 = boto3.client('s3')
+    try:
+        s3.download_file(s3_bucket, s3_path, local_path)
+    except Exception as e:
+        raise Exception(f"Failed to download from S3: {e}")
+
+
+def get_prompts(assignment: str) -> dict:
+    s3_solutions_dir = f"academy/2/homework-keys/{assignment}"
+    local_solutions_dir = os.path.join(os.getcwd(), 'solutions', assignment)
+    os.makedirs(local_solutions_dir, exist_ok=True)
+    prompts = [
+        'example_solution.md',
+        'system_prompt.md',
+        'user_prompt_1.md',
+        'user_prompt_2.md',
+        'week_1_queries.md',
+        'week_2_queries.md',
+    ]
+    prompt_contents = {}
+    for prompt in prompts:
+        s3_path = f"{s3_solutions_dir}/{prompt}"
+        local_path = os.path.join(local_solutions_dir, prompt)
+        download_from_s3(s3_bucket, s3_path, local_path)
+        if not os.path.exists(local_path):
+            raise ValueError(f"File failed to download to {local_path}. Path does not exist.")
+        with open(local_path, "r") as file:
+            prompt_contents[prompt] = file.read()
+    return prompt_contents
+
+def generate_system_prompt(prompts: dict):
+    system_prompt = prompts['system_prompt.md']
+    
+    system_prompt += "# Additional Information"
+    system_prompt += f"\n\n{prompts['week_1_queries.md']}"
+    system_prompt += f"\n\n{prompts['week_2_queries.md']}"
+    system_prompt += f"\n\n{prompts['example_solution.md']}"
+    system_prompt += "\n\n"
+    
+    return system_prompt
+
+def generate_feedback_prompt(prompts: dict, submissions: dict) -> str:
+    user_prompt = prompts['user_prompt_1.md']
+    user_prompt += "\n\n"
+    
+    # user_prompt += "# Additional Information"
+    # user_prompt += f"\n\n{prompts['week_1_queries.md']}"
+    # user_prompt += f"\n\n{prompts['week_2_queries.md']}"
+    # user_prompt += f"\n\n{prompts['example_solution.md']}"
+    # user_prompt += "\n\n"
+    
+    for file_name, submission in submissions.items():
+        user_prompt += "# Student's Solution"
+        user_prompt += f"Please analyze the following code in `{file_name}`:\n\n```\n{submission}\n```\n\n"
+    return user_prompt
+
+
+def generate_grading_prompt(prompts: dict, submissions: dict) -> str:
+    user_prompt = prompts['user_prompt_2.md']
+    user_prompt += "\n\n"
+    
+    # user_prompt += "# Additional Information"
+    # user_prompt += f"\n\n{prompts['week_1_queries.md']}"
+    # user_prompt += f"\n\n{prompts['week_2_queries.md']}"
+    # user_prompt += f"\n\n{prompts['example_solution.md']}"
+    # user_prompt += "\n\n"
+    
+    for file_name, submission in submissions.items():
+        user_prompt += "# Student's Solution"
+        user_prompt += f"Please grade the following code in `{file_name}`:\n\n```\n{submission}\n```\n\n"
+    return user_prompt
+
+
+def get_response(system_prompt: str, user_prompt: str) -> str:
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
-            {
-                "role": "system",
-                "content": system_prompt
-            },
-            {
-                "role": "user",
-                "content": user_prompt
-            },
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
         ],
         temperature=0,
     )
     comment = response.choices[0].message.content
-    text = f"This is a LLM-generated comment: \n{comment if comment else 'No feedback generated.'}"
-    return text
+    # text = f"This is a LLM-generated comment: \n{comment if comment else 'No feedback generated.'}"
+    return comment
 
 
 def post_github_comment(git_token, repo, pr_number, comment):
@@ -122,41 +153,34 @@ def post_github_comment(git_token, repo, pr_number, comment):
     data = {"body": comment}
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 201:
-        logger.error(
-            f"Failed to create comment. Status code: {response.status_code} \n{response.text}"
-        )
-        raise Exception(
-            f"Failed to create comment. Status code: {response.status_code} \n{response.text}"
-        )
-    logger.info(
-        f"✅ Added review comment at https://github.com/{repo}/pull/{pr_number}"
-    )
+        logger.error(f"Failed to create comment. Status code: {response.status_code} \n{response.text}")
+        raise Exception(f"Failed to create comment. Status code: {response.status_code} \n{response.text}")
+    logger.info(f"✅ Added review comment at https://github.com/{repo}/pull/{pr_number}")
 
 
 def main():
     submissions = get_submissions(submission_dir)
     if not submissions:
-        logger.warning(
-            f'No comments were generated because no files were found in the `{submission_dir}` directory. Please modify one or more of the files at `src/jobs/` or `src/tests/` to receive LLM-generated feedback.'
-        )
+        logger.warning(f"No comments were generated because no files were found in the `{submission_dir}` directory. Please modify one or more of the files at `src/jobs/` or `src/tests/` to receive LLM-generated feedback.")
         return None
 
-    s3_solutions_dir = f"academy/2/homework-keys/{assignment}"
-    local_solutions_dir = os.path.join(os.getcwd(), 'solutions', assignment)
-    os.makedirs(local_solutions_dir, exist_ok=True)
-    system_prompt, user_prompt = get_prompts(s3_solutions_dir,
-                                             local_solutions_dir)
+    assignment = get_assignment()
+    prompts = get_prompts(assignment)
+    
+    system_prompt = generate_system_prompt(prompts)
 
-    for file_name, submission in submissions.items():
-        file_path = os.path.join(submission_dir, file_name)
-        user_prompt += code_snippet.format(file_name=file_name,
-                                           file_content=submission)
+    feedback_prompt = generate_feedback_prompt(prompts, submissions)
+    feedback_comment = get_response(system_prompt, feedback_prompt)
+    
+    grading_prompt = generate_grading_prompt(prompts, submissions)
+    grading_comment = get_response(system_prompt, grading_prompt)
 
-    comment = get_feedback(system_prompt, user_prompt)
+    final_comment = f"### Feedback:\n{feedback_comment}\n\n### Grade:\n{grading_comment}"
+
     if git_token and repo and pr_number:
-        post_github_comment(git_token, repo, pr_number, comment)
+        post_github_comment(git_token, repo, pr_number, final_comment)
 
-    return comment
+    return final_comment
 
 
 if __name__ == "__main__":

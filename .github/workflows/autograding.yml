@@ -7,8 +7,8 @@ on:
       - main
       - "cicd/**"
     paths:
-      - "src/jobs/job_*.py"
-      - "src/tests/test_*.py"
+      - "src/jobs/*.py"
+      - "src/unit_tests/*.py"
 
 permissions:
   checks: write
@@ -36,9 +36,10 @@ jobs:
         uses: tj-actions/changed-files@v44
         with:
           files: |
-            src/jobs/job_*.py
-            src/tests/test_*.py
+            src/jobs/*.py
+            src/unit_tests/*.py
           files_ignore: |
+            tests/**
             .github/**/*
             _app/**
             Dockerfile
